@@ -23,16 +23,6 @@ M=$((1024 * K))
 G=$((1024 * M))
 T=$((1024 * T))
 
-if [ -z $DB_DIR ]; then
-  echo "DB_DIR is not defined"
-  exit 0
-fi
-
-if [ -z $WAL_DIR ]; then
-  echo "WAL_DIR is not defined"
-  exit 0
-fi
-
 output_dir=${OUTPUT_DIR:-/tmp/}
 if [ ! -d $output_dir ]; then
   mkdir -p $output_dir
@@ -61,9 +51,6 @@ value_size=${VALUE_SIZE:-400}
 block_size=${BLOCK_SIZE:-8192}
 
 const_params="
-  --db=$DB_DIR \
-  --wal_dir=$WAL_DIR \
-  \
   --num=$num_keys \
   --num_levels=6 \
   --key_size=$key_size \
@@ -97,7 +84,11 @@ const_params="
   \
   --memtablerep=skip_list \
   --bloom_bits=10 \
-  --open_files=-1"
+  --open_files=-1 \
+  \
+  -spdk /tmp/rocksdb.json \
+  -spdk_bdev NVMe0n1 "\
+  \
 
 l0_config="
   --level0_file_num_compaction_trigger=4 \

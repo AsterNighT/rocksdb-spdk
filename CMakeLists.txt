@@ -57,6 +57,12 @@ option(WITH_ZLIB "build with zlib" OFF)
 option(WITH_ZSTD "build with zstd" OFF)
 option(WITH_OPENSSL "build with openssl" OFF)
 option(WITH_WINDOWS_UTF8_FILENAMES "use UTF8 as characterset for opening files, regardles of the system code page" OFF)
+
+include_directories($ENV{SPDK_ROOT}/include)
+link_directories($ENV{SPDK_ROOT}/build/lib)
+link_directories($ENV{DPDK_ROOT}/build/lib)
+link_directories($ENV{ISAL_ROOT}/.libs)
+
 if (WITH_WINDOWS_UTF8_FILENAMES)
   add_definitions(-DROCKSDB_WINDOWS_UTF8_FILENAMES)
 endif()
@@ -560,6 +566,7 @@ set(SOURCES
         env/env_chroot.cc
         env/env_encryption.cc
         env/env_hdfs.cc
+        env/env_spdk.cc
         env/mock_env.cc
         file/delete_scheduler.cc
         file/file_util.cc
@@ -776,6 +783,36 @@ if(WITH_LIBRADOS)
     utilities/env_librados.cc)
   list(APPEND THIRDPARTY_LIBS rados)
 endif()
+
+list(APPEND THIRDPARTY_LIBS 
+  libspdk_thread.a
+  libspdk_blobfs.a
+  libspdk_blobfs_bdev.a
+  libspdk_blob.a
+  libspdk_blob_bdev.a
+  libspdk_bdev_nvme.a
+  libspdk_bdev.a
+  libspdk_util.a
+  libspdk_notify.a
+  libspdk_env_dpdk.a
+  libspdk_json.a
+  libspdk_event.a
+  libspdk_rpc.a
+  libspdk_jsonrpc.a
+  libspdk_log.a
+  libspdk_trace.a
+  librte_eal.a
+  librte_telemetry.a
+  librte_kvargs.a
+  librte_mempool.a
+  librte_ring.a
+  librte_bus_pci.a
+  librte_pci.a
+  libisal.a
+  libuuid.so
+  -lrt
+  -ldl
+)
 
 if(WIN32)
   set(SYSTEM_LIBS ${SYSTEM_LIBS} Shlwapi.lib Rpcrt4.lib)
