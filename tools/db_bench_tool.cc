@@ -6524,7 +6524,7 @@ int db_bench_tool(int argc, char** argv) {
 #endif // OPENSSL
 
   if (!FLAGS_spdk.empty()) {
-    FLAGS_env = rocksdb::NewSpdkEnv(rocksdb::Env::Default(), FLAGS_db, FLAGS_spdk, FLAGS_spdk_bdev, FLAGS_spdk_cache_size);
+    FLAGS_env = rocksdb::NewSpdkEnv(rocksdb::Env::Default(), FLAGS_db, FLAGS_spdk, FLAGS_spdk_bdev, "BENCH_TEST", FLAGS_spdk_cache_size);
     if (FLAGS_env == NULL) {
       fprintf(stderr, "Could not load SPDK blobfs - check that SPDK mkfs was run "
                       "against block device %s.\n", FLAGS_spdk_bdev.c_str());

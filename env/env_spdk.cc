@@ -56,6 +56,7 @@ struct spdk_filesystem *g_fs = NULL;
 struct spdk_bs_dev *g_bs_dev;
 uint32_t g_lcore = 0;
 std::string g_bdev_name;
+std::string g_prefix;
 volatile bool g_spdk_ready = false;
 volatile bool g_spdk_start_failure = false;
 
@@ -119,7 +120,7 @@ __send_request(fs_request_fn fn, void *arg)
 static std::string
 sanitize_path(const std::string &input, const std::string &mount_directory)
 {
-	int index = 0;
+	size_t index = 0;
 	std::string name;
 	std::string input_tmp;
 
@@ -145,6 +146,11 @@ sanitize_path(const std::string &input, const std::string &mount_directory)
 	if (name[name.size() - 1] == '/') {
 		name = name.erase(name.size() - 1, 1);
 	}
+
+	for(index = 0; index < name.length(); ++index){
+		if(name[index] == '/') name.insert(index+1, g_prefix);
+	}
+
 	return name;
 }
 
@@ -408,10 +414,11 @@ private:
 	std::string mDirectory;
 	std::string mConfig;
 	std::string mBdev;
+	std::string mPrefix;
 
 public:
 	SpdkEnv(Env *base_env, const std::string &dir, const std::string &conf,
-		const std::string &bdev, uint64_t cache_size_in_mb);
+		const std::string &bdev, const std::string &prefix, uint64_t cache_size_in_mb);
 
 	virtual ~SpdkEnv();
 
@@ -733,8 +740,8 @@ initialize_spdk(void *arg)
 }
 
 SpdkEnv::SpdkEnv(Env *base_env, const std::string &dir, const std::string &conf,
-		 const std::string &bdev, uint64_t cache_size_in_mb)
-	: EnvWrapper(base_env), mDirectory(dir), mConfig(conf), mBdev(bdev)
+		 const std::string &bdev, const std::string &prefix, uint64_t cache_size_in_mb)
+	: EnvWrapper(base_env), mDirectory(dir), mConfig(conf), mBdev(bdev), mPrefix(prefix)
 {
 	struct spdk_app_opts *opts = new struct spdk_app_opts;
 
@@ -746,6 +753,7 @@ SpdkEnv::SpdkEnv(Env *base_env, const std::string &dir, const std::string &conf,
 
 	spdk_fs_set_cache_size(cache_size_in_mb);
 	g_bdev_name = mBdev;
+	g_prefix = mPrefix;
 
 	pthread_create(&mSpdkTid, NULL, &initialize_spdk, opts);
 	while (!g_spdk_ready && !g_spdk_start_failure)
@@ -784,10 +792,10 @@ SpdkEnv::~SpdkEnv()
 }
 
 Env *NewSpdkEnv(Env *base_env, const std::string &dir, const std::string &conf,
-		const std::string &bdev, uint64_t cache_size_in_mb)
+		const std::string &bdev, const std::string& prefix, uint64_t cache_size_in_mb)
 {
 	try {
-		SpdkEnv *spdk_env = new SpdkEnv(base_env, dir, conf, bdev, cache_size_in_mb);
+		SpdkEnv *spdk_env = new SpdkEnv(base_env, dir, conf, bdev, prefix, cache_size_in_mb);
 		if (g_fs != NULL) {
 			return spdk_env;
 		} else {
