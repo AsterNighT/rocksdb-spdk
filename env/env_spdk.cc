@@ -146,10 +146,8 @@ sanitize_path(const std::string &input, const std::string &mount_directory)
 	if (name[name.size() - 1] == '/') {
 		name = name.erase(name.size() - 1, 1);
 	}
-
-	for(index = 0; index < name.length(); ++index){
-		if(name[index] == '/') name.insert(index+1, g_prefix);
-	}
+	
+	name.insert(0, g_prefix);
 
 	return name;
 }
